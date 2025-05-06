@@ -1,0 +1,156 @@
+// HTML code(index.html)
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Input Page</title>
+</head>
+<body>
+<form action="Login_Servlet" method="post">
+<h1>Login</h1>
+
+<label>Username</label>
+<input type="text" name="username">
+<br><br>
+
+<label>Password</label>
+<input type="password" name="password">
+<br><br>
+
+<input type="submit" value="Submit"><br/>
+</form>
+</body>
+</html>
+
+//JDBCDao.java(Dao class)
+import java.sql.*;
+
+public class JDBCDao {
+    public ResultSet checkUserData(String str) {
+        String driver = "com.mysql.cj.jdbc.Driver";
+        String url = "jdbc:mysql://localhost:3306/exp7";
+        String user = "root";
+        String pass = "Avish@101";
+        ResultSet rs = null;
+
+        try {
+            Class.forName(driver);
+            Connection con = DriverManager.getConnection(url, user, pass);
+            String query = "SELECT * FROM UserInfo WHERE username=?";
+            PreparedStatement pstmt = con.prepareStatement(query);
+            pstmt.setString(1, str);
+            rs = pstmt.executeQuery();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+
+
+//Login_Servlet.java (Servlet)
+import java.io.IOException;
+import java.sql.*;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+@WebServlet("/Login_Servlet")
+public class Login_Servlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    public Login_Servlet() {
+        super();
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.getWriter().append("Served at: ").append(request.getContextPath());
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        System.out.println("Servlet Called...");
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        response.getWriter().print("Client: Username - " + username + "<br>");
+        response.getWriter().print("Client: Password - " + password + "<br><br>");
+
+        String un = "";
+        String pas = "";
+
+        JDBCDao ud = new JDBCDao();
+        ResultSet rs = ud.checkUserData(username);
+
+        boolean credentialsMatch = false;
+
+        try {
+            while (rs.next()) {
+                un = rs.getString(1);
+                pas = rs.getString(2);
+
+                response.getWriter().print("Server: Username - " + un + "<br>");
+                response.getWriter().print("Server: Password - " + pas + "<br>");
+
+                if (un.equals(username) && pas.equals(password)) {
+                    credentialsMatch = true;
+                    System.out.println("Username and Password Matched");
+                    break;
+                }
+            }
+
+            if (credentialsMatch) {
+                response.getWriter().print("<br><br>Username and Password Matched!");
+            } else {
+                response.getWriter().print("<br><br>Username and Password did not match.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+        return rs;
+    }
+}
+
+
+
+Steps to Deploy and Run
+Use Eclipse → New → Dynamic Web Project
+
+Name: LoginWebApp
+
+Target Runtime: Apache Tomcat 9 or 10
+
+Finish
+
+Paste your files into proper folders:
+
+JDBCDao.java in com.login.dao
+
+Login_Servlet.java in com.login.servlet
+
+login.html in WebContent/
+
+Add required JARs:
+
+Right-click project → Build Path → Add External JARs
+
+Add:
+
+mysql-connector-j-8.x.x.jar
+
+jakarta.servlet-api.jar
+
+Run the project on Tomcat:
+
+Right-click project → Run As → Run on Server
+
+URL: http://localhost:8080/LoginWebApp/login.html
+
